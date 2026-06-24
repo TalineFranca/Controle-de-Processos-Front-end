@@ -1,0 +1,121 @@
+import { useState } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { CalendarDays, CheckCircle2 } from 'lucide-react'
+import { processosService } from '@/services/api'
+
+export default function FilaChegada() {
+  const queryClient = useQueryClient()
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['fila-pendentes'],
+    queryFn: () => processosService.listar({ status: 'naoFeito', limite: 500 }),
+    refetchInterval: 30000,
+  })
+
+  const { mutate: marcarFeito, isPending: marcando } = useMutation({
+    mutationFn: (id) => processosService.marcarFeito(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['fila-pendentes'] })
+      queryClient.invalidateQueries({ queryKey: ['policiais-processos'] })
+    },
+  })
+
+  const lista = data?.dados || []
+
+  // Agrupa por data de chegada
+  const porDia = lista.reduce((acc, p) => {
+    const dia = p.dataRecebimento
+      ? new Date(p.dataRecebimento).toLocaleDateString('pt-BR')
+      : 'Sem data'
+    if (!acc[dia]) acc[dia] = []
+    acc[dia].push(p)
+    return acc
+  }, {})
+
+  // Posição global na fila
+  let posicaoGlobal = 0
+
+  return (
+    <div className="p-6">
+      <div className="mb-6">
+        <h1 className="text-xl font-semibold text-gray-900">Fila de chegada</h1>
+        <p className="text-sm text-gray-400 mt-0.5">
+          Processos pendentes — ordenados por data de chegada → hierarquia → nº de ordem
+        </p>
+      </div>
+
+      {isLoading ? (
+        <div className="text-center py-16 text-sm text-gray-400">Carregando...</div>
+      ) : !lista.length ? (
+        <div className="text-center py-16 text-sm text-gray-400">
+          <CheckCircle2 size={32} className="mx-auto text-emerald-300 mb-3" />
+          Nenhum processo pendente
+        </div>
+      ) : (
+        <div className="flex flex-col gap-4">
+          {Object.entries(porDia).map(([dia, procs]) => (
+            <div key={dia} className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+              <div className="flex items-center gap-2 px-5 py-3 bg-gray-50 border-b border-gray-100">
+                <CalendarDays size={14} className="text-pm-500" />
+                <span className="text-sm font-medium text-gray-800">{dia}</span>
+                <span className="text-xs text-gray-400">— {procs.length} processo(s)</span>
+              </div>
+
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-50">
+                    <th className="px-4 py-2.5 text-left text-xs font-medium text-gray-400 w-10">#</th>
+                    <th className="px-4 py-2.5 text-left text-xs font-medium text-gray-400">Policial</th>
+                    <th className="px-4 py-2.5 text-left text-xs font-medium text-gray-400">Posto/Grad.</th>
+                    <th className="px-4 py-2.5 text-left text-xs font-medium text-gray-400">Nr. Ordem</th>
+                    <th className="px-4 py-2.5 text-left text-xs font-medium text-gray-400">Localidade</th>
+                    <th className="px-4 py-2.5 text-left text-xs font-medium text-gray-400">Nº Processo</th>
+                    <th className="px-4 py-2.5 text-left text-xs font-medium text-gray-400">Chegada</th>
+                    <th className="px-4 py-2.5 text-left text-xs font-medium text-gray-400"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {procs.map((p) => {
+                    posicaoGlobal++
+                    const pol = p.policialInfo || p.policial || {}
+                    return (
+                      <tr key={p._id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors">
+                        <td className="px-4 py-3">
+                          <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-pm-50 text-xs font-semibold text-pm-700">
+                            {posicaoGlobal}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 font-medium text-gray-900">{pol.nomeGuerra || '—'}</td>
+                        <td className="px-4 py-3 text-xs text-gray-500">{pol.postoGraduacao || '—'}</td>
+                        <td className="px-4 py-3 text-xs text-gray-500 font-mono">{pol.nrOrdem ?? '—'}</td>
+                        <td className="px-4 py-3 text-gray-600">{pol.localidade || '—'}</td>
+                        <td className="px-4 py-3 font-mono text-xs text-gray-500">
+                          {p.numeroProcesso || <span className="text-gray-300">—</span>}
+                        </td>
+                        <td className="px-4 py-3 text-xs text-gray-500">
+                          {p.dataRecebimento
+                            ? new Date(p.dataRecebimento).toLocaleDateString('pt-BR')
+                            : '—'}
+                        </td>
+                        <td className="px-4 py-3">
+                          <button
+                            onClick={() => marcarFeito(p._id)}
+                            disabled={marcando}
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition-colors disabled:opacity-50"
+                          >
+                            <CheckCircle2 size={11} />
+                            Feito
+                          </button>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
