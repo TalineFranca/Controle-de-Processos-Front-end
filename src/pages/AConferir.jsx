@@ -18,7 +18,7 @@ export default function AConferir() {
   const { data, isLoading } = useQuery({
     queryKey: ['aconferir-lista'],
     queryFn: () => processosService.listar({ status: 'aConferir', limite: 500 }),
-    refetchInterval: 30000,
+    refetchInterval: 60000,
   })
 
   const invalidarTudo = () => {

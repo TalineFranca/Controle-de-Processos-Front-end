@@ -147,12 +147,10 @@ export default function Policiais() {
   const [busca, setBusca] = useState('')
   const [modalPolicial, setModalPolicial] = useState(null)
 
-  const params = { limite: 400, ativo: true }
-  if (busca) params.busca = busca
-
   const { data, isLoading } = useQuery({
-    queryKey: ['policiais', params],
-    queryFn: () => policiaisService.listar(params),
+    queryKey: ['policiais-lista'],
+    queryFn: () => policiaisService.listar({ limite: 400, ativo: true }),
+    staleTime: 5 * 60 * 1000, // 5 min — lista de policiais muda pouco
   })
 
   const { data: processosData } = useQuery({
@@ -160,7 +158,12 @@ export default function Policiais() {
     queryFn: () => processosService.listar({ limite: 500 }),
   })
 
-  const lista = data?.dados || []
+  const listaCompleta = data?.dados || []
+  const lista = busca
+    ? listaCompleta.filter((p) =>
+        (p.nomeGuerra || p.nomeCompleto || '').toLowerCase().includes(busca.toLowerCase())
+      )
+    : listaCompleta
   const processos = processosData?.dados || []
 
   // Lookup de processos por policial

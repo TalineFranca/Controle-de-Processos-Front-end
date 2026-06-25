@@ -35,7 +35,7 @@ export default function FilaChegada() {
   const { data, isLoading } = useQuery({
     queryKey: ['fila-pendentes'],
     queryFn: () => processosService.listar({ status: 'naoFeito', limite: 500 }),
-    refetchInterval: 30000,
+    refetchInterval: 60000,
   })
 
   const { mutate: marcarConferir, isPending: marcando } = useMutation({

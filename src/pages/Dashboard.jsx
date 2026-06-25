@@ -98,14 +98,14 @@ export default function Dashboard() {
   const { data, isLoading } = useQuery({
     queryKey: ['dashboard'],
     queryFn: processosService.dashboard,
-    refetchInterval: 30000,
+    refetchInterval: 60000,
   })
 
   // Busca o total real de policiais ativos no efetivo
   const { data: policiaisData, isLoading: loadingPoliciais } = useQuery({
     queryKey: ['policiais-count'],
     queryFn: () => policiaisService.listar({ limite: 500, ativo: true }),
-    refetchInterval: 30000,
+    refetchInterval: 60000,
   })
 
   const d = data?.dados
