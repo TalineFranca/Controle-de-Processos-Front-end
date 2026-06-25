@@ -13,6 +13,7 @@ import FilaChegada from '@/pages/FilaChegada'
 import AConferir from '@/pages/AConferir'
 import Policiais from '@/pages/Policiais'
 import Usuarios from '@/pages/Usuarios'
+import Relatorio from '@/pages/Relatorio'
 
 import './index.css'
 
@@ -45,6 +46,7 @@ function App() {
             <Route path="conferir" element={<AConferir />} />
             <Route path="policiais" element={<Policiais />} />
             <Route path="usuarios" element={<AdminRoute><Usuarios /></AdminRoute>} />
+            <Route path="relatorio" element={<Relatorio />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
