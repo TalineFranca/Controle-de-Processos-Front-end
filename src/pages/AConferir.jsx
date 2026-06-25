@@ -2,8 +2,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { ClipboardCheck, CheckCircle2, Undo2, Trash2 } from 'lucide-react'
 import { processosService } from '@/services/api'
 
-// Mesma correção de fuso horário usada na fila de chegada:
-// extrai os componentes direto da string ISO, sem deixar o JS converter.
 function formatarDataBR(dataISO) {
   if (!dataISO) return '—'
   const s = String(dataISO).slice(0, 10)
@@ -32,10 +30,6 @@ export default function AConferir() {
     onSuccess: invalidarTudo,
   })
 
-  // Devolve para a fila (status = naoFeito). Mantém a dataRecebimento original,
-  // então o registro volta para o lugar certo na fila — mesma lógica de
-  // ordenação de sempre (data de chegada → antiguidade). Se a pessoa informar
-  // um motivo, ele é salvo nas observações do processo.
   const { mutate: devolver, isPending: devolvendo } = useMutation({
     mutationFn: ({ id, motivo }) => processosService.marcarNaoFeito(id, motivo),
     onSuccess: invalidarTudo,
@@ -48,7 +42,7 @@ export default function AConferir() {
 
   const handleDevolver = (id) => {
     const motivo = window.prompt('O que precisa ser corrigido? (opcional)')
-    if (motivo === null) return // cancelou
+    if (motivo === null) return 
     devolver({ id, motivo: motivo.trim() || undefined })
   }
 

@@ -18,11 +18,10 @@ const MESES = [
 
 export default function Relatorio() {
   const hoje = new Date()
-  const [mes, setMes] = useState(hoje.getMonth()) // 0-11
+  const [mes, setMes] = useState(hoje.getMonth()) 
   const [ano, setAno] = useState(hoje.getFullYear())
   const printRef = useRef()
 
-  // Busca todos os processos feitos
   const { data, isLoading } = useQuery({
     queryKey: ['relatorio-feitos', mes, ano],
     queryFn: () => {
@@ -39,7 +38,6 @@ export default function Relatorio() {
     pol: p.policialInfo || p.policial || {},
   }))
 
-  // Ordena: hierarquia → nrOrdem → data de chegada
   const ordenada = [...lista].sort((a, b) => {
     const ha = a.pol.ordemHierarquica ?? 99
     const hb = b.pol.ordemHierarquica ?? 99

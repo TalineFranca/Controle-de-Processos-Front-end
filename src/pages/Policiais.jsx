@@ -166,7 +166,6 @@ export default function Policiais() {
     : listaCompleta
   const processos = processosData?.dados || []
 
-  // Lookup de processos por policial
   const processosPorPolicial = processos.reduce((acc, p) => {
     const pid = p.policial?._id || p.policialInfo?._id
     if (!pid) return acc

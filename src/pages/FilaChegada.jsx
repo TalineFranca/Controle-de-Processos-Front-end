@@ -3,27 +3,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { CalendarDays, CheckCircle2, ClipboardCheck, Trash2 } from 'lucide-react'
 import { processosService } from '@/services/api'
 
-// ─────────────────────────────────────────────
-// CORREÇÃO DE EXIBIÇÃO DE DATA
-//
-// new Date("2026-06-22").toLocaleDateString('pt-BR') retorna "21/06/2026"
-// porque o JS interpreta strings "YYYY-MM-DD" como UTC midnight,
-// que em Brasília (UTC-4) vira o dia anterior às 20h.
-//
-// Solução: extrair os componentes da data diretamente da string ISO,
-// sem deixar o JS fazer conversão de fuso.
-// ─────────────────────────────────────────────
 function formatarDataBR(dataISO) {
   if (!dataISO) return 'Sem data'
-  // "2026-06-22T12:00:00.000Z" → pega os primeiros 10 caracteres "2026-06-22"
   const s = String(dataISO).slice(0, 10)
   const [ano, mes, dia] = s.split('-')
   if (!ano || !mes || !dia) return 'Sem data'
   return `${dia}/${mes}/${ano}`
 }
 
-// Chave para agrupar: usa só os 10 primeiros caracteres da ISO string
-// assim "2026-06-22T12:00:00.000Z" e "2026-06-22T..." ficam no mesmo grupo
 function chaveAgrupamento(dataISO) {
   if (!dataISO) return 'Sem data'
   return String(dataISO).slice(0, 10) // "YYYY-MM-DD"
@@ -68,7 +55,6 @@ export default function FilaChegada() {
     return acc
   }, new Map())
 
-  // Posição global na fila
   let posicaoGlobal = 0
 
   return (

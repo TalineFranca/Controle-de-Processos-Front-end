@@ -26,7 +26,6 @@ function GraficoEfetivo({ totalPoliciais, totalFeito, totalAConferir, totalNaoFe
   const total = totalPoliciais || 0
   const feitos = totalFeito || 0
   const conferir = totalAConferir || 0
-  // Policiais que ainda não têm nenhum processo registrado
   const semRegistro = Math.max(0, total - feitos - conferir - totalNaoFeito)
 
   const barras = [
@@ -101,7 +100,6 @@ export default function Dashboard() {
     refetchInterval: 60000,
   })
 
-  // Busca o total real de policiais ativos no efetivo
   const { data: policiaisData, isLoading: loadingPoliciais } = useQuery({
     queryKey: ['policiais-count'],
     queryFn: () => policiaisService.listar({ limite: 500, ativo: true }),
@@ -109,7 +107,6 @@ export default function Dashboard() {
   })
 
   const d = data?.dados
-  // total real = quantidade de registros retornados
   const totalPoliciais = policiaisData?.dados?.length ?? 0
 
   return (
