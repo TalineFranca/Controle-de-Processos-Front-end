@@ -3,6 +3,32 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { CalendarDays, CheckCircle2 } from 'lucide-react'
 import { processosService } from '@/services/api'
 
+// ─────────────────────────────────────────────
+// CORREÇÃO DE EXIBIÇÃO DE DATA
+//
+// new Date("2026-06-22").toLocaleDateString('pt-BR') retorna "21/06/2026"
+// porque o JS interpreta strings "YYYY-MM-DD" como UTC midnight,
+// que em Brasília (UTC-4) vira o dia anterior às 20h.
+//
+// Solução: extrair os componentes da data diretamente da string ISO,
+// sem deixar o JS fazer conversão de fuso.
+// ─────────────────────────────────────────────
+function formatarDataBR(dataISO) {
+  if (!dataISO) return 'Sem data'
+  // "2026-06-22T12:00:00.000Z" → pega os primeiros 10 caracteres "2026-06-22"
+  const s = String(dataISO).slice(0, 10)
+  const [ano, mes, dia] = s.split('-')
+  if (!ano || !mes || !dia) return 'Sem data'
+  return `${dia}/${mes}/${ano}`
+}
+
+// Chave para agrupar: usa só os 10 primeiros caracteres da ISO string
+// assim "2026-06-22T12:00:00.000Z" e "2026-06-22T..." ficam no mesmo grupo
+function chaveAgrupamento(dataISO) {
+  if (!dataISO) return 'Sem data'
+  return String(dataISO).slice(0, 10) // "YYYY-MM-DD"
+}
+
 export default function FilaChegada() {
   const queryClient = useQueryClient()
 
@@ -22,15 +48,15 @@ export default function FilaChegada() {
 
   const lista = data?.dados || []
 
-  // Agrupa por data de chegada
+  // ── Agrupa por data de chegada (chave YYYY-MM-DD sem conversão de fuso) ──
+  // A lista já vem ordenada pelo backend: dataRecebimento → ordemHierarquica → nrOrdem
+  // Preservamos essa ordem ao agrupar usando um Map (mantém ordem de inserção)
   const porDia = lista.reduce((acc, p) => {
-    const dia = p.dataRecebimento
-      ? new Date(p.dataRecebimento).toLocaleDateString('pt-BR')
-      : 'Sem data'
-    if (!acc[dia]) acc[dia] = []
-    acc[dia].push(p)
+    const chave = chaveAgrupamento(p.dataRecebimento)
+    if (!acc.has(chave)) acc.set(chave, [])
+    acc.get(chave).push(p)
     return acc
-  }, {})
+  }, new Map())
 
   // Posição global na fila
   let posicaoGlobal = 0
@@ -53,11 +79,14 @@ export default function FilaChegada() {
         </div>
       ) : (
         <div className="flex flex-col gap-4">
-          {Object.entries(porDia).map(([dia, procs]) => (
-            <div key={dia} className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+          {Array.from(porDia.entries()).map(([chave, procs]) => (
+            <div key={chave} className="bg-white rounded-xl border border-gray-100 overflow-hidden">
               <div className="flex items-center gap-2 px-5 py-3 bg-gray-50 border-b border-gray-100">
                 <CalendarDays size={14} className="text-pm-500" />
-                <span className="text-sm font-medium text-gray-800">{dia}</span>
+                {/* Formata o cabeçalho do grupo com a data correta */}
+                <span className="text-sm font-medium text-gray-800">
+                  {formatarDataBR(chave)}
+                </span>
                 <span className="text-xs text-gray-400">— {procs.length} processo(s)</span>
               </div>
 
@@ -93,9 +122,8 @@ export default function FilaChegada() {
                           {p.numeroProcesso || <span className="text-gray-300">—</span>}
                         </td>
                         <td className="px-4 py-3 text-xs text-gray-500">
-                          {p.dataRecebimento
-                            ? new Date(p.dataRecebimento).toLocaleDateString('pt-BR')
-                            : '—'}
+                          {/* Usa formatarDataBR para evitar o bug de fuso horário */}
+                          {formatarDataBR(p.dataRecebimento)}
                         </td>
                         <td className="px-4 py-3">
                           <button

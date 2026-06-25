@@ -1,9 +1,29 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { processosService, policiaisService } from '@/services/api'
 import { Modal } from '@/components/ui/Modal'
 import { TIPOS_PROCESSO, SITUACOES_PROCESSO, SIT_LABEL } from '@/lib/constants'
 import toast from 'react-hot-toast'
+
+// ─────────────────────────────────────────────
+// CORREÇÃO DE DATA NO ENVIO DO FORMULÁRIO
+//
+// O input[type=date] retorna "YYYY-MM-DD" (ex: "2026-06-22").
+// Se enviarmos essa string diretamente, o backend faz new Date("2026-06-22")
+// que o JS interpreta como UTC midnight → em Brasília (UTC-4) vira 21/06 às 20h.
+//
+// Solução: ao enviar, convertemos "YYYY-MM-DD" para "YYYY-MM-DDT12:00:00"
+// (meio-dia local) antes de mandar para o backend. Isso garante que,
+// independente do fuso, a data sempre salve no dia correto.
+// ─────────────────────────────────────────────
+function normalizarDataParaEnvio(dataStr) {
+  if (!dataStr) return undefined
+  // "2026-06-22" → "2026-06-22T12:00:00"
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dataStr)) {
+    return `${dataStr}T12:00:00`
+  }
+  return dataStr
+}
 
 export function NovoProcessoModal({ open, onClose }) {
   const qc = useQueryClient()
@@ -26,7 +46,11 @@ export function NovoProcessoModal({ open, onClose }) {
       qc.invalidateQueries({ queryKey: ['processos'] })
       qc.invalidateQueries({ queryKey: ['dashboard'] })
       onClose()
-      setForm({ policialId: '', tipoProcesso: '', numeroSEI: '', dataRecebimento: new Date().toISOString().slice(0,10), dataPrazo: '', situacao: 'recebido', observacoes: '' })
+      setForm({
+        policialId: '', tipoProcesso: '', numeroSEI: '',
+        dataRecebimento: new Date().toISOString().slice(0, 10),
+        dataPrazo: '', situacao: 'recebido', observacoes: '',
+      })
     },
     onError: (e) => toast.error(e.response?.data?.erro || 'Erro ao registrar'),
   })
@@ -36,7 +60,13 @@ export function NovoProcessoModal({ open, onClose }) {
   const handleSubmit = (e) => {
     e.preventDefault()
     if (!form.policialId || !form.tipoProcesso) return toast.error('Policial e tipo são obrigatórios')
-    mutation.mutate({ ...form, dataPrazo: form.dataPrazo || undefined })
+
+    // ── CORREÇÃO: normaliza as datas antes de enviar ──
+    mutation.mutate({
+      ...form,
+      dataRecebimento: normalizarDataParaEnvio(form.dataRecebimento),
+      dataPrazo: form.dataPrazo ? normalizarDataParaEnvio(form.dataPrazo) : undefined,
+    })
   }
 
   const lista = policiais?.dados || []
