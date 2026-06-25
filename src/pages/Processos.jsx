@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Search, CalendarDays, CheckCircle2, Clock, RotateCcw, Trash2 } from 'lucide-react'
+import { Search, CalendarDays, CheckCircle2, Clock, ClipboardCheck, RotateCcw, Undo2, Trash2 } from 'lucide-react'
 import { processosService } from '@/services/api'
 
 function StatusBadge({ status }) {
@@ -8,6 +8,13 @@ function StatusBadge({ status }) {
     return (
       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-xs font-medium">
         <CheckCircle2 size={10} /> Feito
+      </span>
+    )
+  }
+  if (status === 'aConferir') {
+    return (
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 text-xs font-medium">
+        <ClipboardCheck size={10} /> A conferir
       </span>
     )
   }
@@ -41,10 +48,21 @@ export default function Processos() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['historico-processos'] }),
   })
 
-  const { mutate: marcarNaoFeito } = useMutation({
-    mutationFn: (id) => processosService.marcarNaoFeito(id),
+  const { mutate: marcarConferir } = useMutation({
+    mutationFn: (id) => processosService.marcarConferir(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['historico-processos'] }),
   })
+
+  const { mutate: marcarNaoFeito } = useMutation({
+    mutationFn: ({ id, motivo }) => processosService.marcarNaoFeito(id, motivo),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['historico-processos'] }),
+  })
+
+  const handleDevolver = (id) => {
+    const motivo = window.prompt('O que precisa ser corrigido? (opcional)')
+    if (motivo === null) return
+    marcarNaoFeito({ id, motivo: motivo.trim() || undefined })
+  }
 
   const { mutate: excluir } = useMutation({
     mutationFn: (id) => processosService.excluir(id),
@@ -82,6 +100,7 @@ export default function Processos() {
         >
           <option value="">Todos os status</option>
           <option value="naoFeito">Não feito</option>
+          <option value="aConferir">A conferir</option>
           <option value="feito">Feito</option>
         </select>
         <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-lg px-3 py-1.5">
@@ -111,7 +130,7 @@ export default function Processos() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100">
-                {['Policial', 'Posto/Grad.', 'Localidade', 'Chegada', 'Status', ''].map((h) => (
+                {['Policial', 'Posto/Grad.', 'Chegada', 'Status', ''].map((h) => (
                   <th key={h} className="px-4 py-3 text-left text-xs font-medium text-gray-400">{h}</th>
                 ))}
               </tr>
@@ -123,7 +142,6 @@ export default function Processos() {
                   <tr key={p._id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors">
                     <td className="px-4 py-3 font-medium text-gray-900">{pol.nomeGuerra || '—'}</td>
                     <td className="px-4 py-3 text-xs text-gray-500">{pol.postoGraduacao || '—'}</td>
-                    <td className="px-4 py-3 text-gray-600">{pol.localidade || '—'}</td>
                     <td className="px-4 py-3 text-xs text-gray-500">
                       {p.dataRecebimento
                         ? new Date(p.dataRecebimento).toLocaleDateString('pt-BR')
@@ -134,18 +152,37 @@ export default function Processos() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1">
-                        {p.status === 'naoFeito' ? (
+                        {p.status === 'naoFeito' && (
                           <button
-                            onClick={() => marcarFeito(p._id)}
-                            title="Marcar como feito"
-                            className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                            onClick={() => marcarConferir(p._id)}
+                            title="Enviar para conferência"
+                            className="p-1.5 text-pm-600 hover:bg-pm-50 rounded-lg transition-colors"
                           >
-                            <CheckCircle2 size={14} />
+                            <ClipboardCheck size={14} />
                           </button>
-                        ) : (
+                        )}
+                        {p.status === 'aConferir' && (
+                          <>
+                            <button
+                              onClick={() => marcarFeito(p._id)}
+                              title="Aprovar e marcar como feito"
+                              className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                            >
+                              <CheckCircle2 size={14} />
+                            </button>
+                            <button
+                              onClick={() => handleDevolver(p._id)}
+                              title="Devolver para a fila"
+                              className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                            >
+                              <Undo2 size={14} />
+                            </button>
+                          </>
+                        )}
+                        {p.status === 'feito' && (
                           <button
-                            onClick={() => marcarNaoFeito(p._id)}
-                            title="Desfazer"
+                            onClick={() => marcarConferir(p._id)}
+                            title="Desfazer (voltar para conferência)"
                             className="p-1.5 text-gray-400 hover:bg-gray-100 rounded-lg transition-colors"
                           >
                             <RotateCcw size={14} />

@@ -10,6 +10,7 @@ import Login from '@/pages/Login'
 import Dashboard from '@/pages/Dashboard'
 import Processos from '@/pages/Processos'
 import FilaChegada from '@/pages/FilaChegada'
+import AConferir from '@/pages/AConferir'
 import Policiais from '@/pages/Policiais'
 import Usuarios from '@/pages/Usuarios'
 
@@ -41,6 +42,7 @@ function App() {
             <Route index element={<Dashboard />} />
             <Route path="processos" element={<Processos />} />
             <Route path="fila" element={<FilaChegada />} />
+            <Route path="conferir" element={<AConferir />} />
             <Route path="policiais" element={<Policiais />} />
             <Route path="usuarios" element={<AdminRoute><Usuarios /></AdminRoute>} />
           </Route>

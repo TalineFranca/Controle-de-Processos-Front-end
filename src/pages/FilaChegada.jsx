@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { CalendarDays, CheckCircle2, Trash2 } from 'lucide-react'
+import { CalendarDays, CheckCircle2, ClipboardCheck, Trash2 } from 'lucide-react'
 import { processosService } from '@/services/api'
 
 // ─────────────────────────────────────────────
@@ -38,10 +38,11 @@ export default function FilaChegada() {
     refetchInterval: 30000,
   })
 
-  const { mutate: marcarFeito, isPending: marcando } = useMutation({
-    mutationFn: (id) => processosService.marcarFeito(id),
+  const { mutate: marcarConferir, isPending: marcando } = useMutation({
+    mutationFn: (id) => processosService.marcarConferir(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['fila-pendentes'] })
+      queryClient.invalidateQueries({ queryKey: ['aconferir-lista'] })
       queryClient.invalidateQueries({ queryKey: ['policiais-processos'] })
     },
   })
@@ -106,7 +107,6 @@ export default function FilaChegada() {
                     <th className="px-4 py-2.5 text-left text-xs font-medium text-gray-400">Policial</th>
                     <th className="px-4 py-2.5 text-left text-xs font-medium text-gray-400">Posto/Grad.</th>
                     <th className="px-4 py-2.5 text-left text-xs font-medium text-gray-400">Nr. Ordem</th>
-                    <th className="px-4 py-2.5 text-left text-xs font-medium text-gray-400">Localidade</th>
                     <th className="px-4 py-2.5 text-left text-xs font-medium text-gray-400">Nº Processo</th>
                     <th className="px-4 py-2.5 text-left text-xs font-medium text-gray-400">Chegada</th>
                     <th className="px-4 py-2.5 text-left text-xs font-medium text-gray-400"></th>
@@ -126,7 +126,6 @@ export default function FilaChegada() {
                         <td className="px-4 py-3 font-medium text-gray-900">{pol.nomeGuerra || '—'}</td>
                         <td className="px-4 py-3 text-xs text-gray-500">{pol.postoGraduacao || '—'}</td>
                         <td className="px-4 py-3 text-xs text-gray-500 font-mono">{pol.nrOrdem ?? '—'}</td>
-                        <td className="px-4 py-3 text-gray-600">{pol.localidade || '—'}</td>
                         <td className="px-4 py-3 font-mono text-xs text-gray-500">
                           {p.numeroProcesso || <span className="text-gray-300">—</span>}
                         </td>
@@ -137,12 +136,12 @@ export default function FilaChegada() {
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-1">
                             <button
-                              onClick={() => marcarFeito(p._id)}
+                              onClick={() => marcarConferir(p._id)}
                               disabled={marcando || excluindo}
-                              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition-colors disabled:opacity-50"
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-pm-700 bg-pm-50 hover:bg-pm-100 rounded-lg transition-colors disabled:opacity-50"
                             >
-                              <CheckCircle2 size={11} />
-                              Feito
+                              <ClipboardCheck size={11} />
+                              Conferir
                             </button>
                             <button
                               onClick={() => {
