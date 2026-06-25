@@ -86,7 +86,7 @@ export function NovoProcessoModal({ open, onClose }) {
               <option value="">Selecione o policial...</option>
               {lista.map((p) => (
                 <option key={p._id} value={p._id}>
-                  {p.postoGraduacao} {p.nomeGuerra} — {p.localidade || ''}
+                  {p.postoGraduacao} {p.nomeGuerra}
                 </option>
               ))}
             </select>
