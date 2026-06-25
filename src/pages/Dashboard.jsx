@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { CheckCircle2, Clock, CalendarDays, MapPin } from 'lucide-react'
+import { CheckCircle2, Clock, ClipboardCheck, CalendarDays } from 'lucide-react'
 import { processosService, policiaisService } from '@/services/api'
 
 function Card({ icon: Icon, label, value, color = 'blue' }) {
@@ -7,6 +7,7 @@ function Card({ icon: Icon, label, value, color = 'blue' }) {
     blue: 'bg-pm-50 text-pm-600',
     green: 'bg-emerald-50 text-emerald-600',
     amber: 'bg-amber-50 text-amber-600',
+    sky: 'bg-sky-50 text-sky-600',
   }
   return (
     <div className="bg-white rounded-xl border border-gray-100 p-5 flex items-center gap-4">
@@ -21,14 +22,18 @@ function Card({ icon: Icon, label, value, color = 'blue' }) {
   )
 }
 
-function GraficoEfetivo({ totalPoliciais, totalFeito, totalNaoFeito }) {
+function GraficoEfetivo({ totalPoliciais, totalFeito, totalAConferir, totalNaoFeito }) {
   const total = totalPoliciais || 0
   const feitos = totalFeito || 0
+  const conferir = totalAConferir || 0
   // Policiais que ainda não têm nenhum processo registrado
-  const semRegistro = Math.max(0, total - feitos - totalNaoFeito)
+  const semRegistro = Math.max(0, total - feitos - conferir - totalNaoFeito)
 
   const barras = [
     { label: 'Feitos', valor: feitos, cor: 'bg-emerald-500', corTexto: 'text-emerald-700', corFundo: 'bg-emerald-50' },
+    ...(conferir > 0
+      ? [{ label: 'A conferir', valor: conferir, cor: 'bg-sky-400', corTexto: 'text-sky-700', corFundo: 'bg-sky-50' }]
+      : []),
     ...(totalNaoFeito > 0
       ? [{ label: 'Pendentes', valor: totalNaoFeito, cor: 'bg-amber-400', corTexto: 'text-amber-700', corFundo: 'bg-amber-50' }]
       : []),
@@ -118,8 +123,9 @@ export default function Dashboard() {
         <div className="text-center py-16 text-sm text-gray-400">Carregando...</div>
       ) : (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <Card icon={Clock} label="Não feitos (pendentes)" value={d?.totalNaoFeito} color="amber" />
+            <Card icon={ClipboardCheck} label="A conferir" value={d?.totalAConferir} color="sky" />
             <Card icon={CheckCircle2} label="Feitos" value={d?.totalFeito} color="green" />
             <Card icon={CalendarDays} label="Chegaram hoje" value={d?.chegadosHoje} color="blue" />
           </div>
@@ -128,34 +134,11 @@ export default function Dashboard() {
             <GraficoEfetivo
               totalPoliciais={totalPoliciais}
               totalFeito={d?.totalFeito ?? 0}
+              totalAConferir={d?.totalAConferir ?? 0}
               totalNaoFeito={d?.totalNaoFeito ?? 0}
             />
           </div>
 
-          {d?.porLocalidade?.length > 0 && (
-            <div className="bg-white rounded-xl border border-gray-100 p-5">
-              <h2 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
-                <MapPin size={14} className="text-pm-500" />
-                Pendentes por localidade
-              </h2>
-              <div className="flex flex-col gap-2">
-                {d.porLocalidade.map((l) => (
-                  <div key={l.localidade} className="flex items-center gap-3">
-                    <span className="text-sm text-gray-600 w-40 truncate">{l.localidade}</span>
-                    <div className="flex-1 bg-gray-100 rounded-full h-2 overflow-hidden">
-                      <div
-                        className="h-2 bg-pm-400 rounded-full"
-                        style={{
-                          width: `${Math.min(100, (l.total / (d.totalNaoFeito || 1)) * 100)}%`,
-                        }}
-                      />
-                    </div>
-                    <span className="text-sm font-medium text-gray-700 w-8 text-right">{l.total}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </>
       )}
     </div>

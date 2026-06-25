@@ -44,7 +44,8 @@ export const processosService = {
   obter: (id) => api.get(`/processos/${id}`).then((r) => r.data),
   criar: (body) => api.post('/processos', body).then((r) => r.data),
   marcarFeito: (id) => api.patch(`/processos/${id}/feito`).then((r) => r.data),
-  marcarNaoFeito: (id) => api.patch(`/processos/${id}/nao-feito`).then((r) => r.data),
+  marcarConferir: (id) => api.patch(`/processos/${id}/conferir`).then((r) => r.data),
+  marcarNaoFeito: (id, motivo) => api.patch(`/processos/${id}/nao-feito`, { motivo }).then((r) => r.data),
   excluir: (id) => api.delete(`/processos/${id}`).then((r) => r.data),
   dashboard: () => api.get('/processos/dashboard').then((r) => r.data),
 }
@@ -53,5 +54,4 @@ export const processosService = {
 export const policiaisService = {
   listar: (params) => api.get('/policiais', { params }).then((r) => r.data),
   obter: (id) => api.get(`/policiais/${id}`).then((r) => r.data),
-  unidades: () => api.get('/policiais/unidades').then((r) => r.data),
 }
