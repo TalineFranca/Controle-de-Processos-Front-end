@@ -9,10 +9,10 @@ export function Sidebar() {
 
   const nav = [
     { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
-    { to: '/processos', icon: FileText, label: 'Processos' },
+    { to: '/policiais', icon: Users, label: 'Efetivo' },
     { to: '/fila', icon: ArrowDownUp, label: 'Fila de chegada' },
     { to: '/conferir', icon: ClipboardCheck, label: 'A conferir' },
-    { to: '/policiais', icon: Users, label: 'Efetivo' },
+    { to: '/processos', icon: FileText, label: 'Processos' },
     { to: '/relatorio', icon: BarChart2, label: 'Relatório mensal' },
     ...(usuario?.perfil === 'admin'
       ? [{ to: '/usuarios', icon: UserCog, label: 'Usuários' }]
