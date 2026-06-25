@@ -220,22 +220,26 @@ export default function Policiais() {
     )
 
     if (filtroAtivo) {
-      // Agrupa por localidade
-      const porLocalidade = lista.reduce((acc, p) => {
-        const loc = p.localidade || 'Sem localidade'
-        if (!acc[loc]) acc[loc] = []
-        acc[loc].push(p)
+      // Agrupa por UNIDADE (secaoOrigem) — uma cidade pode ter várias unidades
+      // (ex: 1ª CIA e PCSv são ambas de Vilhena, mas são unidades diferentes).
+      // A lista já chega ordenada por antiguidade do batalhão (ordemBatalhao),
+      // então a ordem de antiguidade dentro de cada unidade é preservada
+      // automaticamente ao agrupar — não é preciso reordenar aqui.
+      const porUnidade = lista.reduce((acc, p) => {
+        const chave = p.secaoOrigem || p.localidade || 'Sem unidade'
+        if (!acc[chave]) acc[chave] = { localidade: p.localidade || 'Sem localidade', pols: [] }
+        acc[chave].pols.push(p)
         return acc
       }, {})
 
       return (
         <div className="flex flex-col gap-4">
-          {Object.entries(porLocalidade).sort(([a], [b]) => a.localeCompare(b)).map(([loc, pols]) => (
-            <div key={loc} className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+          {Object.entries(porUnidade).map(([unidade, { localidade: loc, pols }]) => (
+            <div key={unidade} className="bg-white rounded-xl border border-gray-100 overflow-hidden">
               <div className="flex items-center gap-2 px-5 py-3 bg-gray-50 border-b border-gray-100">
                 <MapPin size={14} className="text-pm-500" />
-                <span className="text-sm font-medium text-gray-800">{loc}</span>
-                <span className="text-xs text-gray-400">— {pols.length} policial(is)</span>
+                <span className="text-sm font-medium text-gray-800">{unidade}</span>
+                <span className="text-xs text-gray-400">{loc} — {pols.length} policial(is)</span>
               </div>
               <TabelaPoliciais
                 pols={pols}
