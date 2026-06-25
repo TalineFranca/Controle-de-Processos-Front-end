@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, FileText, ArrowDownUp, ClipboardCheck, Users, LogOut, UserCog } from 'lucide-react'
+import { LayoutDashboard, FileText, ArrowDownUp, Users, LogOut, UserCog } from 'lucide-react'
 import { useAuth } from '@/hooks/useAuth'
 import { cn } from '@/lib/utils'
 
@@ -11,7 +11,6 @@ export function Sidebar() {
     { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
     { to: '/processos', icon: FileText, label: 'Processos' },
     { to: '/fila', icon: ArrowDownUp, label: 'Fila de chegada' },
-    { to: '/conferir', icon: ClipboardCheck, label: 'A conferir' },
     { to: '/policiais', icon: Users, label: 'Efetivo' },
     ...(usuario?.perfil === 'admin'
       ? [{ to: '/usuarios', icon: UserCog, label: 'Usuários' }]

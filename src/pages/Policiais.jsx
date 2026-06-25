@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Search, Plus, CheckCircle2, ClipboardCheck, Clock } from 'lucide-react'
+import { Search, Plus, CheckCircle2, Clock } from 'lucide-react'
 import { policiaisService, processosService } from '@/services/api'
 
 // ── Modal de Registro ────────────────────────────────
@@ -74,9 +74,8 @@ function ModalRegistrar({ policial, onClose }) {
 
 // ── Badge de Status ──────────────────────────────────
 function StatusBadge({ registros }) {
-  if (!registros?.length) return <span className="text-xs text-gray-400">—</span>
-
-  if (registros.some((r) => r.status === 'naoFeito')) {
+  const pendente = registros?.find((r) => r.status === 'naoFeito')
+  if (pendente) {
     return (
       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 text-xs font-medium">
         <Clock size={10} />
@@ -84,20 +83,15 @@ function StatusBadge({ registros }) {
       </span>
     )
   }
-  if (registros.some((r) => r.status === 'aConferir')) {
+  if (registros?.length > 0) {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 text-xs font-medium">
-        <ClipboardCheck size={10} />
-        A conferir
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-xs font-medium">
+        <CheckCircle2 size={10} />
+        Feito
       </span>
     )
   }
-  return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-xs font-medium">
-      <CheckCircle2 size={10} />
-      Feito
-    </span>
-  )
+  return <span className="text-xs text-gray-400">—</span>
 }
 
 // ── Tabela de Policiais ──────────────────────────────
