@@ -3,7 +3,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Search, Plus, CheckCircle2, ClipboardCheck, Clock } from 'lucide-react'
 import { policiaisService, processosService } from '@/services/api'
 
-// ── Modal de Registro ────────────────────────────────
 function ModalRegistrar({ policial, onClose }) {
   const queryClient = useQueryClient()
   const [dataRecebimento, setDataRecebimento] = useState(
@@ -72,7 +71,6 @@ function ModalRegistrar({ policial, onClose }) {
   )
 }
 
-// ── Badge de Status ──────────────────────────────────
 function StatusBadge({ registros }) {
   if (!registros?.length) return <span className="text-xs text-gray-400">—</span>
 
@@ -100,7 +98,6 @@ function StatusBadge({ registros }) {
   )
 }
 
-// ── Tabela de Policiais ──────────────────────────────
 function TabelaPoliciais({ pols, processosPorPolicial, onRegistrar }) {
   return (
     <table className="w-full text-sm">
@@ -140,9 +137,9 @@ function TabelaPoliciais({ pols, processosPorPolicial, onRegistrar }) {
   )
 }
 
-// ── Página Principal ─────────────────────────────────
-// Lista única, ordenada por antiguidade do batalhão (relatorioEfetivo_total.csv).
-// Sem agrupamento/filtro por localidade por enquanto.
+const norm = (s) =>
+  (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+
 export default function Policiais() {
   const [busca, setBusca] = useState('')
   const [modalPolicial, setModalPolicial] = useState(null)
@@ -150,7 +147,7 @@ export default function Policiais() {
   const { data, isLoading } = useQuery({
     queryKey: ['policiais-lista'],
     queryFn: () => policiaisService.listar({ limite: 400, ativo: true }),
-    staleTime: 5 * 60 * 1000, // 5 min — lista de policiais muda pouco
+    staleTime: 5 * 60 * 1000,
   })
 
   const { data: processosData } = useQuery({
@@ -161,7 +158,7 @@ export default function Policiais() {
   const listaCompleta = data?.dados || []
   const lista = busca
     ? listaCompleta.filter((p) =>
-        (p.nomeGuerra || p.nomeCompleto || '').toLowerCase().includes(busca.toLowerCase())
+        norm(p.nomeGuerra || p.nomeCompleto).includes(norm(busca))
       )
     : listaCompleta
   const processos = processosData?.dados || []
@@ -183,7 +180,6 @@ export default function Policiais() {
         </p>
       </div>
 
-      {/* Busca */}
       <div className="flex gap-2 mb-6 flex-wrap items-center">
         <div className="relative flex-1 min-w-48">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
