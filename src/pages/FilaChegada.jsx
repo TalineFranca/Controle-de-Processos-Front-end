@@ -55,8 +55,6 @@ export default function FilaChegada() {
     return acc
   }, new Map())
 
-  let posicaoGlobal = 0
-
   return (
     <div className="p-6">
       <div className="mb-6">
@@ -75,7 +73,9 @@ export default function FilaChegada() {
         </div>
       ) : (
         <div className="flex flex-col gap-4">
-          {Array.from(porDia.entries()).map(([chave, procs]) => (
+          {Array.from(porDia.entries()).map(([chave, procs]) => {
+            let posicaoDia = 0
+            return (
             <div key={chave} className="bg-white rounded-xl border border-gray-100 overflow-hidden">
               <div className="flex items-center gap-2 px-5 py-3 bg-gray-50 border-b border-gray-100">
                 <CalendarDays size={14} className="text-pm-500" />
@@ -100,13 +100,13 @@ export default function FilaChegada() {
                 </thead>
                 <tbody>
                   {procs.map((p) => {
-                    posicaoGlobal++
+                    posicaoDia++
                     const pol = p.policialInfo || p.policial || {}
                     return (
                       <tr key={p._id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50 transition-colors">
                         <td className="px-4 py-3">
                           <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-pm-50 text-xs font-semibold text-pm-700">
-                            {posicaoGlobal}
+                            {posicaoDia}
                           </span>
                         </td>
                         <td className="px-4 py-3 font-medium text-gray-900">{pol.nomeGuerra || '—'}</td>
@@ -147,7 +147,8 @@ export default function FilaChegada() {
                 </tbody>
               </table>
             </div>
-          ))}
+            )
+          })}
         </div>
       )}
     </div>
