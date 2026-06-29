@@ -158,7 +158,7 @@ export default function Policiais() {
   const listaCompleta = data?.dados || []
   const lista = busca
     ? listaCompleta.filter((p) =>
-        norm(p.nomeGuerra || p.nomeCompleto).includes(norm(busca))
+        norm(p.nomeGuerra).includes(norm(busca)) || norm(p.nomeCompleto).includes(norm(busca))
       )
     : listaCompleta
   const processos = processosData?.dados || []
